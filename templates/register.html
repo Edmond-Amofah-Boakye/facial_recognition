@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration - Professional Face Recognition System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(44, 62, 80, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e67e22);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+
+        .camera-container {
+            position: relative;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #videoElement {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .face-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--success-color);
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .face-preview:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+        }
+
+        .alert {
+            border: none;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .step.completed {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .step-line {
+            width: 50px;
+            height: 2px;
+            background: #e9ecef;
+            margin-top: 19px;
+            transition: all 0.3s ease;
+        }
+
+        .step-line.completed {
+            background: var(--success-color);
+        }
+
+        @media (max-width: 768px) {
+            .face-preview {
+                width: 80px;
+                height: 80px;
+            }
+            
+            #videoElement {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt me-2"></i>
+                Professional Face Recognition
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/register"><i class="fas fa-user-plus me-1"></i> Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/authenticate"><i class="fas fa-sign-in-alt me-1"></i> Authenticate</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/users"><i class="fas fa-users me-1"></i> Users</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logs"><i class="fas fa-clipboard-list me-1"></i> Logs</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-transparent text-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-user-plus me-2 text-primary"></i>
+                            User Registration
+                        </h3>
+                        <p class="text-muted mt-2">Register a new user with face recognition</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Step Indicator -->
+                        <div class="step-indicator">
+                            <div class="step active" id="step1">1</div>
+                            <div class="step-line" id="line1"></div>
+                            <div class="step" id="step2">2</div>
+                            <div class="step-line" id="line2"></div>
+                            <div class="step" id="step3">3</div>
+                        </div>
+
+                        <!-- Alert Messages -->
+                        <div id="alertContainer"></div>
+
+                        <!-- Step 1: Personal Information -->
+                        <div id="personalInfoStep" class="step-content">
+                            <h5 class="mb-4">
+                                <i class="fas fa-user me-2"></i>
+                                Personal Information
+                            </h5>
+                            <form id="personalInfoForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="fullName" class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" id="fullName" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email Address *</label>
+                                        <input type="email" class="form-control" id="email" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="phone">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="department" class="form-label">Department</label>
+                                        <input type="text" class="form-control" id="department">
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-primary" onclick="nextStep()">
+                                        Next Step <i class="fas fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Step 2: Face Capture -->
+                        <div id="faceCaptureStep" class="step-content" style="display: none;">
+                            <h5 class="mb-4">
+                                <i class="fas fa-camera me-2"></i>
+                                Face Capture
+                            </h5>
+                            <p class="text-muted mb-4">
+                                We need to capture multiple photos of your face for accurate recognition. 
+                                Please look directly at the camera and capture at least 5 clear photos.
+                            </p>
+
+                            <!-- Camera Container -->
+                            <div class="camera-container">
+                                <video id="videoElement" autoplay muted></video>
+                                <div class="camera-overlay" id="cameraOverlay">
+                                    <div class="text-center">
+                                        <i class="fas fa-camera fa-3x mb-3"></i>
+                                        <div>Click "Start Camera" to begin</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Camera Controls -->
+                            <div class="text-center mb-4">
+                                <button type="button" class="btn btn-success me-2" id="startCameraBtn" onclick="startCamera()">
+                                    <i class="fas fa-video me-2"></i>
+                                    Start Camera
+                                </button>
+                                <button type="button" class="btn btn-primary me-2" id="captureBtn" onclick="capturePhoto()" disabled>
+                                    <i class="fas fa-camera me-2"></i>
+                                    Capture Photo
+                                </button>
+                                <button type="button" class="btn btn-warning" id="stopCameraBtn" onclick="stopCamera()" disabled>
+                                    <i class="fas fa-stop me-2"></i>
+                                    Stop Camera
+                                </button>
+                            </div>
+
+                            <!-- Progress -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Photos Captured</span>
+                                    <span id="photoCount">0/5</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar" id="photoProgress" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Captured Photos Preview -->
+                            <div id="photoPreview" class="text-center mb-4"></div>
+
+                            <!-- Navigation -->
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="previousStep()">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Previous
+                                </button>
+                                <button type="button" class="btn btn-primary" id="nextStepBtn" onclick="nextStep()" disabled>
+                                    Next Step <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Confirmation -->
+                        <div id="confirmationStep" class="step-content" style="display: none;">
+                            <h5 class="mb-4">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Confirm Registration
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Personal Information</h6>
+                                    <div id="confirmationInfo"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Face Photos</h6>
+                                    <div id="confirmationPhotos"></div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info mt-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Please review your information carefully. Once registered, you'll be able to authenticate using face recognition.
+                            </div>
+
+                            <!-- Navigation -->
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="previousStep()">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Previous
+                                </button>
+                                <button type="button" class="btn btn-success" id="registerBtn" onclick="registerUser()">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    Complete Registration
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentStep = 1;
+        let stream = null;
+        let capturedPhotos = [];
+        let personalInfo = {};
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function updateStepIndicator() {
+            for (let i = 1; i <= 3; i++) {
+                const step = document.getElementById(`step${i}`);
+                const line = document.getElementById(`line${i}`);
+                
+                if (i < currentStep) {
+                    step.className = 'step completed';
+                    if (line) line.className = 'step-line completed';
+                } else if (i === currentStep) {
+                    step.className = 'step active';
+                    if (line) line.className = 'step-line';
+                } else {
+                    step.className = 'step';
+                    if (line) line.className = 'step-line';
+                }
+            }
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step-content').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            if (step === 1) {
+                document.getElementById('personalInfoStep').style.display = 'block';
+            } else if (step === 2) {
+                document.getElementById('faceCaptureStep').style.display = 'block';
+            } else if (step === 3) {
+                document.getElementById('confirmationStep').style.display = 'block';
+                showConfirmation();
+            }
+        }
+
+        function nextStep() {
+            if (currentStep === 1) {
+                if (validatePersonalInfo()) {
+                    currentStep = 2;
+                    updateStepIndicator();
+                    showStep(2);
+                }
+            } else if (currentStep === 2) {
+                if (capturedPhotos.length >= 5) {
+                    currentStep = 3;
+                    updateStepIndicator();
+                    showStep(3);
+                } else {
+                    showAlert('Please capture at least 5 photos before proceeding.', 'warning');
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepIndicator();
+                showStep(currentStep);
+            }
+        }
+
+        function validatePersonalInfo() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!fullName) {
+                showAlert('Please enter your full name.', 'danger');
+                return false;
+            }
+            
+            if (!email) {
+                showAlert('Please enter your email address.', 'danger');
+                return false;
+            }
+            
+            if (!email.includes('@') || !email.includes('.')) {
+                showAlert('Please enter a valid email address.', 'danger');
+                return false;
+            }
+            
+            personalInfo = {
+                full_name: fullName,
+                email: email,
+                phone: document.getElementById('phone').value.trim(),
+                department: document.getElementById('department').value.trim()
+            };
+            
+            return true;
+        }
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: 1280, 
+                        height: 720,
+                        facingMode: 'user'
+                    } 
+                });
+                
+                const video = document.getElementById('videoElement');
+                video.srcObject = stream;
+                
+                document.getElementById('cameraOverlay').style.display = 'none';
+                document.getElementById('startCameraBtn').disabled = true;
+                document.getElementById('captureBtn').disabled = false;
+                document.getElementById('stopCameraBtn').disabled = false;
+                
+                showAlert('Camera started successfully. You can now capture photos.', 'success');
+            } catch (error) {
+                console.error('Camera access failed:', error);
+                showAlert('Failed to access camera. Please ensure camera permissions are granted.', 'danger');
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            document.getElementById('cameraOverlay').style.display = 'flex';
+            document.getElementById('startCameraBtn').disabled = false;
+            document.getElementById('captureBtn').disabled = true;
+            document.getElementById('stopCameraBtn').disabled = true;
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            
+            const imageData = canvas.toDataURL('image/jpeg', 0.8);
+            capturedPhotos.push(imageData);
+            
+            updatePhotoPreview();
+            updateProgress();
+            
+            showAlert(`Photo ${capturedPhotos.length} captured successfully!`, 'success');
+            
+            if (capturedPhotos.length >= 5) {
+                document.getElementById('nextStepBtn').disabled = false;
+                showAlert('Minimum photos captured! You can proceed to the next step.', 'info');
+            }
+        }
+
+        function updatePhotoPreview() {
+            const preview = document.getElementById('photoPreview');
+            preview.innerHTML = '';
+            
+            capturedPhotos.forEach((photo, index) => {
+                const img = document.createElement('img');
+                img.src = photo;
+                img.className = 'face-preview';
+                img.title = `Photo ${index + 1}`;
+                img.onclick = () => removePhoto(index);
+                preview.appendChild(img);
+            });
+        }
+
+        function removePhoto(index) {
+            if (confirm('Remove this photo?')) {
+                capturedPhotos.splice(index, 1);
+                updatePhotoPreview();
+                updateProgress();
+                
+                if (capturedPhotos.length < 5) {
+                    document.getElementById('nextStepBtn').disabled = true;
+                }
+            }
+        }
+
+        function updateProgress() {
+            const count = capturedPhotos.length;
+            const percentage = Math.min((count / 5) * 100, 100);
+            
+            document.getElementById('photoCount').textContent = `${count}/5`;
+            document.getElementById('photoProgress').style.width = `${percentage}%`;
+        }
+
+        function showConfirmation() {
+            const infoDiv = document.getElementById('confirmationInfo');
+            infoDiv.innerHTML = `
+                <p><strong>Name:</strong> ${personalInfo.full_name}</p>
+                <p><strong>Email:</strong> ${personalInfo.email}</p>
+                ${personalInfo.phone ? `<p><strong>Phone:</strong> ${personalInfo.phone}</p>` : ''}
+                ${personalInfo.department ? `<p><strong>Department:</strong> ${personalInfo.department}</p>` : ''}
+            `;
+            
+            const photosDiv = document.getElementById('confirmationPhotos');
+            photosDiv.innerHTML = `<p><strong>Photos:</strong> ${capturedPhotos.length} captured</p>`;
+            
+            const previewContainer = document.createElement('div');
+            capturedPhotos.slice(0, 3).forEach(photo => {
+                const img = document.createElement('img');
+                img.src = photo;
+                img.className = 'face-preview';
+                img.style.width = '60px';
+                img.style.height = '60px';
+                previewContainer.appendChild(img);
+            });
+            
+            if (capturedPhotos.length > 3) {
+                const moreText = document.createElement('span');
+                moreText.textContent = ` +${capturedPhotos.length - 3} more`;
+                moreText.className = 'text-muted';
+                previewContainer.appendChild(moreText);
+            }
+            
+            photosDiv.appendChild(previewContainer);
+        }
+
+        async function registerUser() {
+            const registerBtn = document.getElementById('registerBtn');
+            const originalText = registerBtn.innerHTML;
+            
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+            
+            try {
+                const registrationData = {
+                    ...personalInfo,
+                    face_images: capturedPhotos
+                };
+                
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(registrationData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(`Registration successful! User ID: ${result.user_id}`, 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                } else {
+                    showAlert(`Registration failed: ${result.message}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showAlert('Registration failed due to a network error. Please try again.', 'danger');
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = originalText;
+            }
+        }
+
+        // Initialize
+        updateStepIndicator();
+        showStep(1);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html>

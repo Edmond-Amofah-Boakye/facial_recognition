@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Authentication - Professional Face Recognition System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(44, 62, 80, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e67e22);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #c0392b);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+
+        .camera-container {
+            position: relative;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #videoElement {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .face-detection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .face-box {
+            position: absolute;
+            border: 3px solid var(--success-color);
+            border-radius: 10px;
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .confidence-meter {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            min-width: 200px;
+        }
+
+        .confidence-bar {
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+        }
+
+        .auth-status {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .auth-status.success {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+        }
+
+        .auth-status.failed {
+            background: linear-gradient(135deg, var(--danger-color), #c0392b);
+        }
+
+        .auth-status.processing {
+            background: linear-gradient(135deg, var(--warning-color), #e67e22);
+        }
+
+        .user-card {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .user-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 3rem;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+        }
+
+        .scanning-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--secondary-color), transparent);
+            animation: scan 2s infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(500px); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            #videoElement {
+                height: 400px;
+            }
+            
+            .confidence-meter {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt me-2"></i>
+                Professional Face Recognition
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register"><i class="fas fa-user-plus me-1"></i> Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/authenticate"><i class="fas fa-sign-in-alt me-1"></i> Authenticate</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/users"><i class="fas fa-users me-1"></i> Users</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logs"><i class="fas fa-clipboard-list me-1"></i> Logs</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-transparent text-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-sign-in-alt me-2 text-primary"></i>
+                            Face Authentication
+                        </h3>
+                        <p class="text-muted mt-2">Secure access using face recognition technology</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Alert Messages -->
+                        <div id="alertContainer"></div>
+
+                        <!-- Authentication Interface -->
+                        <div id="authInterface">
+                            <!-- Camera Container -->
+                            <div class="camera-container">
+                                <video id="videoElement" autoplay muted></video>
+                                <div class="camera-overlay" id="cameraOverlay">
+                                    <div class="text-center">
+                                        <i class="fas fa-user-shield fa-4x mb-3"></i>
+                                        <div>Click "Start Authentication" to begin</div>
+                                    </div>
+                                </div>
+                                <div class="face-detection-overlay" id="faceOverlay"></div>
+                                <div class="scanning-animation" id="scanLine" style="display: none;"></div>
+                                
+                                <!-- Confidence Meter -->
+                                <div class="confidence-meter" id="confidenceMeter" style="display: none;">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Confidence</span>
+                                        <span id="confidenceValue">0%</span>
+                                    </div>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Authentication Status -->
+                                <div class="auth-status" id="authStatus" style="display: none;">
+                                    <i class="fas fa-search me-2"></i>
+                                    Scanning for face...
+                                </div>
+                            </div>
+
+                            <!-- Controls -->
+                            <div class="text-center mb-4">
+                                <button type="button" class="btn btn-success me-2" id="startAuthBtn" onclick="startAuthentication()">
+                                    <i class="fas fa-play me-2"></i>
+                                    Start Authentication
+                                </button>
+                                <button type="button" class="btn btn-primary me-2" id="captureAuthBtn" onclick="authenticateNow()" disabled>
+                                    <i class="fas fa-user-check me-2"></i>
+                                    Authenticate Now
+                                </button>
+                                <button type="button" class="btn btn-warning" id="stopAuthBtn" onclick="stopAuthentication()" disabled>
+                                    <i class="fas fa-stop me-2"></i>
+                                    Stop
+                                </button>
+                            </div>
+
+                            <!-- Instructions -->
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Instructions:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li>Position your face clearly in front of the camera</li>
+                                    <li>Ensure good lighting conditions</li>
+                                    <li>Look directly at the camera</li>
+                                    <li>The system works even with face masks</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Authentication Result -->
+                        <div id="authResult" style="display: none;">
+                            <div class="user-card" id="userCard">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <h4 id="userName">Welcome!</h4>
+                                <p id="userDetails" class="mb-3"></p>
+                                <div class="d-flex justify-content-center gap-3">
+                                    <div class="text-center">
+                                        <div class="h5 mb-0" id="userConfidence">95%</div>
+                                        <small>Confidence</small>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="h5 mb-0" id="authTime">--</div>
+                                        <small>Auth Time</small>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button type="button" class="btn btn-light me-2" onclick="resetAuthentication()">
+                                        <i class="fas fa-redo me-2"></i>
+                                        Authenticate Again
+                                    </button>
+                                    <button type="button" class="btn btn-outline-light" onclick="goToDashboard()">
+                                        <i class="fas fa-tachometer-alt me-2"></i>
+                                        Go to Dashboard
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let stream = null;
+        let isAuthenticating = false;
+        let authStartTime = null;
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        async function startAuthentication() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: 1280, 
+                        height: 720,
+                        facingMode: 'user'
+                    } 
+                });
+                
+                const video = document.getElementById('videoElement');
+                video.srcObject = stream;
+                
+                document.getElementById('cameraOverlay').style.display = 'none';
+                document.getElementById('startAuthBtn').disabled = true;
+                document.getElementById('captureAuthBtn').disabled = false;
+                document.getElementById('stopAuthBtn').disabled = false;
+                document.getElementById('confidenceMeter').style.display = 'block';
+                document.getElementById('authStatus').style.display = 'block';
+                document.getElementById('scanLine').style.display = 'block';
+                
+                isAuthenticating = true;
+                authStartTime = Date.now();
+                
+                showAlert('Authentication system activated. Position your face in the camera.', 'success');
+                
+                // Start continuous authentication
+                startContinuousAuth();
+                
+            } catch (error) {
+                console.error('Camera access failed:', error);
+                showAlert('Failed to access camera. Please ensure camera permissions are granted.', 'danger');
+            }
+        }
+
+        function stopAuthentication() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            isAuthenticating = false;
+            
+            document.getElementById('cameraOverlay').style.display = 'flex';
+            document.getElementById('startAuthBtn').disabled = false;
+            document.getElementById('captureAuthBtn').disabled = true;
+            document.getElementById('stopAuthBtn').disabled = true;
+            document.getElementById('confidenceMeter').style.display = 'none';
+            document.getElementById('authStatus').style.display = 'none';
+            document.getElementById('scanLine').style.display = 'none';
+            
+            updateAuthStatus('Stopped', 'default');
+        }
+
+        function startContinuousAuth() {
+            if (!isAuthenticating) return;
+            
+            // Show stable "ready" state instead of fluctuating confidence
+            updateConfidence(0);
+            updateAuthStatus('Camera ready - Click "Authenticate Now" when ready', 'default');
+        }
+
+        function updateConfidence(confidence) {
+            const confidenceValue = document.getElementById('confidenceValue');
+            const confidenceFill = document.getElementById('confidenceFill');
+            
+            confidenceValue.textContent = Math.round(confidence) + '%';
+            confidenceFill.style.width = confidence + '%';
+            
+            // Change color based on confidence
+            if (confidence > 80) {
+                confidenceFill.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+            } else if (confidence > 60) {
+                confidenceFill.style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+            } else {
+                confidenceFill.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+            }
+        }
+
+        function updateAuthStatus(message, type) {
+            const authStatus = document.getElementById('authStatus');
+            authStatus.textContent = message;
+            authStatus.className = `auth-status ${type}`;
+            
+            // Update icon based on type
+            const icon = type === 'success' ? 'check-circle' : 
+                        type === 'processing' ? 'spinner fa-spin' : 
+                        type === 'failed' ? 'times-circle' : 'search';
+            
+            authStatus.innerHTML = `<i class="fas fa-${icon} me-2"></i>${message}`;
+        }
+
+        async function authenticateNow() {
+            const captureBtn = document.getElementById('captureAuthBtn');
+            const originalText = captureBtn.innerHTML;
+            
+            captureBtn.disabled = true;
+            captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Authenticating...';
+            
+            updateAuthStatus('Processing authentication...', 'processing');
+            
+            try {
+                const video = document.getElementById('videoElement');
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0);
+                
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                
+                const response = await fetch('/api/authenticate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.user) {
+                    // Authentication successful
+                    const authTime = ((Date.now() - authStartTime) / 1000).toFixed(1);
+                    showAuthenticationSuccess(result.user, result.confidence, authTime);
+                    showAlert(`Welcome back, ${result.user.full_name}!`, 'success');
+                } else {
+                    // Authentication failed - show clear failure message
+                    updateAuthStatus('❌ AUTHENTICATION FAILED', 'failed');
+                    updateConfidence(result.confidence ? result.confidence * 100 : 0);
+                    
+                    // Show prominent failure alert
+                    showAlert(`🚫 AUTHENTICATION FAILED: ${result.message || 'Face not recognized. Please try again or register if you are a new user.'}`, 'danger');
+                    
+                    // Keep failure status visible longer
+                    setTimeout(() => {
+                        if (isAuthenticating) {
+                            updateAuthStatus('Camera ready - Click "Authenticate Now" when ready', 'default');
+                            updateConfidence(0);
+                        }
+                    }, 5000); // Show failure for 5 seconds instead of 3
+                }
+                
+            } catch (error) {
+                console.error('Authentication error:', error);
+                updateAuthStatus('System error', 'failed');
+                showAlert('Authentication failed due to a system error. Please try again.', 'danger');
+            } finally {
+                captureBtn.disabled = false;
+                captureBtn.innerHTML = originalText;
+            }
+        }
+
+        function showAuthenticationSuccess(user, confidence, authTime) {
+            // Stop authentication
+            stopAuthentication();
+            
+            // Hide auth interface and show result
+            document.getElementById('authInterface').style.display = 'none';
+            document.getElementById('authResult').style.display = 'block';
+            
+            // Update user card
+            document.getElementById('userName').textContent = `Welcome, ${user.full_name}!`;
+            document.getElementById('userDetails').innerHTML = `
+                <strong>ID:</strong> ${user.user_id}<br>
+                <strong>Email:</strong> ${user.email}<br>
+                ${user.department ? `<strong>Department:</strong> ${user.department}<br>` : ''}
+                <strong>Role:</strong> ${user.role || 'User'}
+            `;
+            document.getElementById('userConfidence').textContent = Math.round(confidence * 100) + '%';
+            document.getElementById('authTime').textContent = authTime + 's';
+            
+            // Add pulse animation
+            document.getElementById('userCard').classList.add('pulse');
+            setTimeout(() => {
+                document.getElementById('userCard').classList.remove('pulse');
+            }, 2000);
+        }
+
+        function resetAuthentication() {
+            // Show auth interface and hide result
+            document.getElementById('authInterface').style.display = 'block';
+            document.getElementById('authResult').style.display = 'none';
+            
+            // Reset all states
+            document.getElementById('cameraOverlay').style.display = 'flex';
+            document.getElementById('startAuthBtn').disabled = false;
+            document.getElementById('captureAuthBtn').disabled = true;
+            document.getElementById('stopAuthBtn').disabled = true;
+            document.getElementById('confidenceMeter').style.display = 'none';
+            document.getElementById('authStatus').style.display = 'none';
+            document.getElementById('scanLine').style.display = 'none';
+            
+            isAuthenticating = false;
+        }
+
+        function goToDashboard() {
+            window.location.href = '/';
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+
+        // Auto-authenticate every 3 seconds when camera is active
+        setInterval(() => {
+            if (isAuthenticating && !document.getElementById('captureAuthBtn').disabled) {
+                // Only auto-authenticate if confidence is high
+                const confidenceText = document.getElementById('confidenceValue').textContent;
+                const confidence = parseInt(confidenceText);
+                
+                if (confidence > 85) {
+                    authenticateNow();
+                }
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

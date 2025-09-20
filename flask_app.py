@@ -3,14 +3,22 @@ import cv2
 import json
 import threading
 import time
-from face_recognition_system import MaskedFaceRecognitionSystem
+from lightweight_face_system import PowerfulLightweightFaceRecognition, UltraLightweightFaceRecognition
 import base64
 import numpy as np
 
 app = Flask(__name__)
 
 # Global variables
-face_system = MaskedFaceRecognitionSystem()
+# Choose which system to use:
+# Option 1: Powerful but lightweight (requires torch, facenet-pytorch)
+try:
+    face_system = PowerfulLightweightFaceRecognition()
+    print("✅ Using PowerfulLightweightFaceRecognition (MTCNN + FaceNet)")
+except Exception as e:
+    print(f"⚠️  PowerfulLightweightFaceRecognition failed: {e}")
+    print("🔄 Falling back to UltraLightweightFaceRecognition (OpenCV only)")
+    face_system = UltraLightweightFaceRecognition()
 camera = None
 camera_active = False
 recognition_active = False
